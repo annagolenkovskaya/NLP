@@ -1,6 +1,7 @@
-"""Для слов с положительной и негативной окраской из каждого словаря посчитать:
+"""a. Для слов с положительной и негативной окраской из каждого словаря посчитать:
 частоту слов в отзывах разных рейтингов (всего 5 рейтингов = 5 разных таблиц).
 Результаты записать в csv файлы (аргумент скрипта), формат: слово, тональность, источник (linis or rusentilex), частота
+b. То же самое, но теперь просуммировать частоты слов с одной окраской в отзывах каждого рейтинга. Записать результаты.
 """
 
 import codecs, json, pandas as pd, csv
@@ -24,7 +25,7 @@ with open(rusentilex_path) as text:
 rusentilex = rusentilex[18:]
 
 
-def tonality(csv_path):
+def tonality(csv_path, write_all_words=False, sum_pos_neg=False):
 	reviews = []
 	with codecs.open(path, "r", encoding='utf-8') as fin:
 		for line in fin:
@@ -42,31 +43,35 @@ def tonality(csv_path):
 		five = []
 
 		for review in reviews:
-		# 	try:
-		# 		one.append(review['1'])
-		# 	except:
-		# 		pass
+			# try:
+			# 	one.append(review['1'])
+			# except:
+			# 	pass
+
 			# try:
 			# 	two.append(review['2'])
 			# except:
 			# 	pass
+
 			# try:
 			# 	three.append(review['3'])
 			# except:
 			# 	pass
-			# try:
-			# 	four.append(review['4'])
-			# except:
-			# 	pass
+
 			try:
-				five.append(review['5'])
+				four.append(review['4'])
 			except:
 				pass
+
+			# try:
+			# 	five.append(review['5'])
+			# except:
+			# 	pass
 
 	print("here")
 
 	words_by_rating = []
-	for text in five:  # this part changes for every rating value
+	for text in four:  # this part changes for every rating value
 		words_by_rating.append(text.split(' '))
 	print("here")
 
@@ -127,9 +132,30 @@ def tonality(csv_path):
 		if tones[l] == tones[l - 1]:
 			tones.remove(tones[l])
 
-	with open(csv_path, "w", newline="") as f:
-		cw = csv.writer(f)
-		cw.writerows(r for r in tones)
+	if sum_pos_neg:
+		positives = 0
+		negatives = 0
+
+		for line in tones:
+			print(len(line), line)
+			if 'pos' in line:
+				positives += line[3]
+				print("positives =", positives)
+			elif 'neg'in line:
+				negatives += line[3]
+				print("negatives =", negatives)
+
+		sum_pos_neg = [['positives = {}'.format(positives)], ['negatives = {}'.format(negatives)]]
+		print("sum_pos_neg = ", sum_pos_neg)
+
+		with open(csv_path, "w", newline="") as f:
+			cw = csv.writer(f)
+			cw.writerows(s for s in sum_pos_neg)
+
+	if write_all_words:
+		with open(csv_path, "w", newline="") as f:
+			cw = csv.writer(f)
+			cw.writerows(r for r in tones)
 
 
 rating_one_path = '/home/anna/Desktop/tonalities_rating_one.csv'
@@ -137,4 +163,10 @@ rating_two_path = '/home/anna/Desktop/tonalities_rating_two.csv'
 rating_three_path = '/home/anna/Desktop/tonalities_rating_three.csv'
 rating_four_path = '/home/anna/Desktop/tonalities_rating_four.csv'
 rating_five_path = '/home/anna/Desktop/tonalities_rating_five.csv'
-tonality(csv_path=rating_five_path)
+
+ratings_sum_one_path = '/home/anna/Desktop/tonalities_ratings_sum_one.csv'
+ratings_sum_two_path = '/home/anna/Desktop/tonalities_ratings_sum_two.csv'
+ratings_sum_three_path = '/home/anna/Desktop/tonalities_ratings_sum_three.csv'
+ratings_sum_four_path = '/home/anna/Desktop/tonalities_ratings_sum_four.csv'
+ratings_sum_five_path = '/home/anna/Desktop/tonalities_ratings_sum_five.csv'
+tonality(csv_path=ratings_sum_four_path, write_all_words=False, sum_pos_neg=True)
