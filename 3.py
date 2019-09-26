@@ -99,78 +99,95 @@ def dict_pos(dict, path_to, maturity=False):
 	return dict
 
 
-def bigrams(review, path_to, adj_noun=False, part_noun=False, neg_verb=False, noun_noun_gent=False,
+def bigrams(reviews, path_to, adj_noun=False, part_noun=False, neg_verb=False, noun_noun_gent=False,
             noun_noun_ablt=False):
+
 	bigrams = []
-	for word in range(1, len(review)):
-		words = []
-		words.append(review[word - 1])
-		words.append(review[word])
-		bigrams.append(words)
+	all_res = []
+	number_of_all_bigrams = 0
+	all_bigrams = 0
+	all_adj_noun_bigrams = 0
+	all_part_noun_bigrams = 0
+	all_noun_noun_gent_bigrams = 0
+	all_noun_noun_ablt_bigrams = 0
 
-	res = []
-	number_of_bigrams = 0
+	for review in reviews:
+		for word in range(1, len(review[0])):
+			words = []
+			words.append(review[0][word - 1])
+			words.append(review[0][word])
+			bigrams.append(words)
 
-	if adj_noun:
-		adj_noun_bigrams = []
-		for bigram in bigrams:
-			if 'ADJ' in bigram[0] and 'NOUN' in bigram[1]:
-				adj_noun_bigrams.append(bigram)
-		res = adj_noun_bigrams.copy()
+		res = []
+		number_of_bigrams = 0
 
-	if part_noun:
-		part_noun_bigrams = []
-		for bigram in bigrams:
-			if 'PART' in bigram[0] and 'NOUN' in bigram[1]:
-				part_noun_bigrams.append(bigram)
-		res += part_noun_bigrams.copy()
+		if adj_noun:
+			adj_noun_bigrams = []
+			for bigram in bigrams:
+				if 'ADJ' in bigram[0] and 'NOUN' in bigram[1]:
+					adj_noun_bigrams.append(bigram)
+			res = adj_noun_bigrams.copy()
 
-	if noun_noun_gent:
-		noun_noun_gent_bigrams = []
-		for bigram in bigrams:
-			if 'NOUN' in bigram[0] and 'NOUN_gent' in bigram[1]:
-				noun_noun_gent_bigrams.append(bigram)
-		res += noun_noun_gent_bigrams.copy()
+		if part_noun:
+			part_noun_bigrams = []
+			for bigram in bigrams:
+				if 'PART' in bigram[0] and 'NOUN' in bigram[1]:
+					part_noun_bigrams.append(bigram)
+			res += part_noun_bigrams.copy()
 
-	if noun_noun_ablt:
-		noun_noun_ablt_bigrams = []
-		for bigram in bigrams:
-			if 'NOUN' in bigram[0] and 'NOUN_ablt' in bigram[1]:
-				noun_noun_ablt_bigrams.append(bigram)
-		res += noun_noun_ablt_bigrams.copy()
+		if noun_noun_gent:
+			noun_noun_gent_bigrams = []
+			for bigram in bigrams:
+				if 'NOUN' in bigram[0] and 'NOUN_gent' in bigram[1]:
+					noun_noun_gent_bigrams.append(bigram)
+			res += noun_noun_gent_bigrams.copy()
 
-	if neg_verb:
-		neg_verb_bigrams = []
-		for bigram in bigrams:
-			if 'не_INTJ' in bigram[0] and 'VERB' in bigram[1]:
-				neg_verb_bigrams.append(bigram)
-		res += neg_verb_bigrams
-		number_of_bigrams += len(res)
+		if noun_noun_ablt:
+			noun_noun_ablt_bigrams = []
+			for bigram in bigrams:
+				if 'NOUN' in bigram[0] and 'NOUN_ablt' in bigram[1]:
+					noun_noun_ablt_bigrams.append(bigram)
+			res += noun_noun_ablt_bigrams.copy()
 
-	res.append('Всего извлеклось {} биграм'.format(number_of_bigrams))
-	res.append('Осталось {} биграм'.format(len(bigrams) - number_of_bigrams))
-	res.append('Словосочетаний прилагательное + существительное = {}'.format(len(adj_noun_bigrams)))
-	res.append('Словосочетаний причастие + существительное = {}'.format(len(part_noun_bigrams)))
-	res.append('Словосочетаний существительное + существительное в родительном падеже = {}'.
-	           format(len(noun_noun_gent_bigrams)))
-	res.append('Словосочетаний существительное + существительное в творительном падеже = {}'.
-	           format(len(noun_noun_ablt_bigrams)))
+		if neg_verb:
+			neg_verb_bigrams = []
+			for bigram in bigrams:
+				if 'не_INTJ' in bigram[0] and 'VERB' in bigram[1]:
+					neg_verb_bigrams.append(bigram)
+			res += neg_verb_bigrams
+			number_of_bigrams += len(res)
+
+	all_res.append(res)
+	number_of_all_bigrams += number_of_bigrams
+	all_bigrams += len(bigrams)
+	all_adj_noun_bigrams += len(adj_noun_bigrams)
+	all_part_noun_bigrams += len(part_noun_bigrams)
+	all_noun_noun_gent_bigrams += len(noun_noun_gent_bigrams)
+	all_noun_noun_ablt_bigrams += len(noun_noun_ablt_bigrams)
+	all_res.append('Всего извлеклось {} биграм'.format(number_of_all_bigrams))
+	all_res.append('Осталось {} биграм'.format(all_bigrams - number_of_all_bigrams))
+	all_res.append('Словосочетаний прилагательное + существительное = {}'.format(all_adj_noun_bigrams))
+	all_res.append('Словосочетаний причастие + существительное = {}'.format(all_part_noun_bigrams))
+	all_res.append('Словосочетаний существительное + существительное в родительном падеже = {}'.
+	           format(all_noun_noun_gent_bigrams))
+	all_res.append('Словосочетаний существительное + существительное в творительном падеже = {}'.
+	           format(all_noun_noun_ablt_bigrams))
 
 	with open(path_to, "w") as f:
-		for r in res:
+		for r in all_res:
 			f.write(str(r) + '\n')
 
-	return res
+	return all_res
 
 linis_path_to = '/home/anna/Desktop/linis_pos.txt'
 rusentilex_path_to = '/home/anna/Desktop/rusentilex_pos.txt'
 
-path_to = '/home/anna/Desktop/bigrams.txt'
+path_to = '/home/anna/Desktop/all_bigrams.txt'
 reviews = read_reviews(path_cosmetics)
-review = reviews[1]
-review[0] = re.sub("[^\w]", " ", review[0]).split()
-review = dict_pos(review[0], linis_path_to, maturity=True)
-bigrams = bigrams(review, path_to, adj_noun=True, part_noun=True, noun_noun_gent=True, noun_noun_ablt=True,
+reviews = reviews[:100]
+for review in reviews:
+	review[0] = re.sub("[^\w]", " ", review[0]).split()
+	review = dict_pos(review[0], linis_path_to, maturity=True)
+
+bigrams = bigrams(reviews, path_to, adj_noun=True, part_noun=True, noun_noun_gent=True, noun_noun_ablt=True,
                   neg_verb=True)
-for b in bigrams:
-	print("bigram =", b)
