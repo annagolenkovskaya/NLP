@@ -1,83 +1,49 @@
+# -*- coding: utf-8 -*-
 """a. Для слов с положительной и негативной окраской из каждого словаря посчитать:
 частоту слов в отзывах разных рейтингов (всего 5 рейтингов = 5 разных таблиц).
 Результаты записать в csv файлы (аргумент скрипта), формат: слово, тональность, источник (linis or rusentilex), частота
 b. То же самое, но теперь просуммировать частоты слов с одной окраской в отзывах каждого рейтинга. Записать результаты.
 """
 
-import codecs, json, pandas as pd, csv
+import codecs, json, pandas as pd, csv, re
 from collections import Counter
-
-path = '/home/anna/Desktop/otzovik_medicine.json'
-linis = '/home/anna/Desktop/collection (docs&words)_2016_all_labels/full word_rating_after_coding.xlsx'
-rusentilex_path = '/home/anna/Desktop/rusentilex.txt'
-
-data = pd.ExcelFile(linis)
-dfs = {sheet_name: data.parse(sheet_name)
-       for sheet_name in data.sheet_names}
-linis_tonalities = dfs['Лист1']
-linis_tonalities = linis_tonalities.values.tolist()
-print("linis_tonalities =", type(linis_tonalities))
-
-rusentilex = []
-with open(rusentilex_path) as text:
-	for line in text:
-		rusentilex.append(line)
-rusentilex = rusentilex[18:]
+from utils import read_reviews, read_rusentilex, read_linis
 
 
-def tonality(csv_path, write_all_words=False, sum_pos_neg=False):
-	reviews = []
-	with codecs.open(path, "r", encoding='utf-8') as fin:
-		for line in fin:
-			try:
-				doc = json.loads(line)
-				reviews.append({doc['overall']: doc['reviewText']})
+def tonality(rating, write_all_words=False, sum_pos_neg=False):
+	reviews= read_reviews()
 
-			except:
-				pass
+	csv_path = '/home/anna/Desktop/tonalities_rating_one.csv'
+	rating_two_path = '/home/anna/Desktop/tonalities_rating_two.csv'
+	rating_three_path = '/home/anna/Desktop/tonalities_rating_three.csv'
+	rating_four_path = '/home/anna/Desktop/tonalities_rating_four.csv'
+	rating_five_path = '/home/anna/Desktop/tonalities_rating_five.csv'
 
-		one = []
-		two = []
-		three = []
-		four = []
-		five = []
+	ratings_sum_one_path = '/home/anna/Desktop/tonalities_ratings_sum_one.csv'
+	ratings_sum_two_path = '/home/anna/Desktop/tonalities_ratings_sum_two.csv'
+	ratings_sum_three_path = '/home/anna/Desktop/tonalities_ratings_sum_three.csv'
+	ratings_sum_four_path = '/home/anna/Desktop/tonalities_ratings_sum_four.csv'
+	ratings_sum_five_path = '/home/anna/Desktop/tonalities_ratings_sum_five.csv'
+	# parser = argparse.ArgumentParser()
+	# parser.add_argument('csv_path', type=str, help='path to csv file')
+	# args = parser.parse_args()
+	# csv_path = args.indir
 
-		for review in reviews:
-			# try:
-			# 	one.append(review['1'])
-			# except:
-			# 	pass
-
-			# try:
-			# 	two.append(review['2'])
-			# except:
-			# 	pass
-
-			# try:
-			# 	three.append(review['3'])
-			# except:
-			# 	pass
-
-			try:
-				four.append(review['4'])
-			except:
-				pass
-
-			# try:
-			# 	five.append(review['5'])
-			# except:
-			# 	pass
+	data_by_rating = []
+	for review in reviews:
+		if re.search('Общий рейтинг.*?(\d)', str(review['product-rating'])).group(1) == rating:
+			data_by_rating.append(review['lemm_text'])
 
 	print("here")
-
 	words_by_rating = []
-	for text in four:  # this part changes for every rating value
+	for text in data_by_rating:
 		words_by_rating.append(text.split(' '))
 	print("here")
-
-	for text in range(len(words_by_rating)):
-		for word in range(len(words_by_rating[text])):
-			words_by_rating[text][word] = words_by_rating[text][word][:words_by_rating[text][word].find("_")]
+	print(words_by_rating)
+	# for text in range(len(words_by_rating)):
+	# 	for word in range(len(words_by_rating[text])):
+	# 		words_by_rating[text][word] = words_by_rating[text][word][:words_by_rating[text][word].find("_")]
+	print(words_by_rating)
 	print("here")
 
 	for text in range(len(words_by_rating)):
@@ -96,17 +62,20 @@ def tonality(csv_path, write_all_words=False, sum_pos_neg=False):
 	found = []
 
 	print("here")
+	linis_tonalities = read_linis()
+	rusentilex = read_rusentilex()
+
 	for word in words_by_rating:
 		print("word =", len(word), word)
 		for line in linis_tonalities:
-			if word in line:
+			if word == line[0]:
 				print("linis line =", len(line), line)
-				if line[1] < 0:
+				if line[1] == 'negative':
 					tone = [word, 'neg', 'linis', counter[word]]
 					tones.append(tone)
 					found.append(word)
 
-				elif line[1] > 0:
+				elif line[1] == 'positive':
 					tone = [word, 'pos', 'linis', counter[word]]
 					tones.append(tone)
 					found.append(word)
@@ -115,15 +84,14 @@ def tonality(csv_path, write_all_words=False, sum_pos_neg=False):
 
 		if word not in found:
 			for line in rusentilex:
-				if line[:len(word)] == word and line[len(word):len(word) + 1] == ',':
-					print(line[:len(word)], line[len(word):len(word) + 1])
+				if word == line[0]:
 					print("rusenti line =", len(line), line)
 
-					if 'positive' in line:
+					if line[1] == 'positive':
 						tone = [word, 'pos', 'rusentilex', counter[word]]
 						tones.append(tone)
 
-					elif 'negative' in line:
+					elif line[1] == 'negative':
 						tone = [word, 'neg', 'rusentilex', counter[word]]
 						tones.append(tone)
 						print("tones =", tones)
@@ -158,15 +126,4 @@ def tonality(csv_path, write_all_words=False, sum_pos_neg=False):
 			cw.writerows(r for r in tones)
 
 
-rating_one_path = '/home/anna/Desktop/tonalities_rating_one.csv'
-rating_two_path = '/home/anna/Desktop/tonalities_rating_two.csv'
-rating_three_path = '/home/anna/Desktop/tonalities_rating_three.csv'
-rating_four_path = '/home/anna/Desktop/tonalities_rating_four.csv'
-rating_five_path = '/home/anna/Desktop/tonalities_rating_five.csv'
-
-ratings_sum_one_path = '/home/anna/Desktop/tonalities_ratings_sum_one.csv'
-ratings_sum_two_path = '/home/anna/Desktop/tonalities_ratings_sum_two.csv'
-ratings_sum_three_path = '/home/anna/Desktop/tonalities_ratings_sum_three.csv'
-ratings_sum_four_path = '/home/anna/Desktop/tonalities_ratings_sum_four.csv'
-ratings_sum_five_path = '/home/anna/Desktop/tonalities_ratings_sum_five.csv'
-tonality(csv_path=ratings_sum_four_path, write_all_words=False, sum_pos_neg=True)
+tonality(rating='1', write_all_words=True, sum_pos_neg=False)
