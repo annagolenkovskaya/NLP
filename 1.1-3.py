@@ -3,17 +3,24 @@
 Из поля product-rating извлечь рейтинг (написать регулярное выражение для извлечения числа)
 Подсчитать число отзывов для каждого уникального значения рейтинга
 """
-import re
+import re, argparse
 from collections import Counter
+from utils import read_reviews
 
-path = '/home/anna/Desktop/all_reviews_texts_lemm.txt'
-cat_value = 'Лекарственные средства'
+# path = '/home/anna/Desktop/all_reviews_texts_lemm.txt'
+# cat_value = 'Лекарственные средства'
+parser = argparse.ArgumentParser()
+parser.add_argument('cat', type=str)
+args = parser.parse_args()
+cat_value = args.cat
 
 
-def rating(path, cat_value, by_cat=False, ratings=False, number_of_units=False):
-	reviews = []
+def rating(cat_value, by_cat=False, ratings=False, number_of_units=False):
 	product_ratings =[]
-
+	units = 0
+	reviews = read_reviews()
+	print(reviews)
+	raise Exception
 	with open(path) as text:
 		for line in text:
 			if by_cat:
@@ -31,7 +38,7 @@ def rating(path, cat_value, by_cat=False, ratings=False, number_of_units=False):
 	return reviews, product_ratings, units
 
 
-rate = rating(path, cat_value, by_cat=False, ratings=False, number_of_units=True)
+rate = rating(cat_value, by_cat=True, ratings=False, number_of_units=False)
 print('Количество отзывов, где cat2: Лекарственные средства =', len(rate[0]))
 print('Рейтинги =', rate[1], len(rate[1]))
 print("Количество отзывов по рейтингам: '5':", rate[2]['5'],
