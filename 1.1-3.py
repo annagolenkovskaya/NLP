@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """Открыть файл reviews_texts.txt (аргумент скрипта). Каждая строка файла представляет собой json объект (отзыв).
 Выбрать все отзывы, где  "cat2": "Лекарственные средства" (аргумент скрипта).
 Из поля product-rating извлечь рейтинг (написать регулярное выражение для извлечения числа)
@@ -10,7 +11,7 @@ from utils import read_reviews
 # path = '/home/anna/Desktop/all_reviews_texts_lemm.txt'
 # cat_value = 'Лекарственные средства'
 parser = argparse.ArgumentParser()
-parser.add_argument('cat', type=str)
+parser.add_argument('cat', type=str, help='category name')
 args = parser.parse_args()
 cat_value = args.cat
 
@@ -19,23 +20,22 @@ def rating(cat_value, by_cat=False, ratings=False, number_of_units=False):
 	product_ratings =[]
 	units = 0
 	reviews = read_reviews()
-	print(reviews)
-	raise Exception
-	with open(path) as text:
-		for line in text:
-			if by_cat:
-				if cat_value in line:
-					reviews.append(line)
-			if ratings or number_of_units:
-				try:
-					product_ratings.append(re.search('Общий рейтинг.*?(\d)', line).group(1))
-				except:
-					continue
+	found = []
+	for review in reviews:
+		if by_cat:
+			if review['cat2'] == cat_value:
+				found.append(review)
+
+		if ratings or number_of_units:
+			try:
+				product_ratings.append(re.search('Общий рейтинг.*?(\d)', str(review['product-rating'])).group(1))
+			except:
+				continue
 
 		if number_of_units:
 			units = Counter(product_ratings)
 
-	return reviews, product_ratings, units
+	return found, product_ratings, units
 
 
 rate = rating(cat_value, by_cat=True, ratings=False, number_of_units=False)
