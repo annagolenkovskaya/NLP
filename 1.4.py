@@ -1,19 +1,15 @@
+# -*- coding: utf-8 -*-
 """Подсчитать число отзывов для каждого уникального значения в cat3"""
 import codecs, json
 from collections import Counter
+from utils import read_reviews
 
 
 def unique_reviews(fname):
 	categories = []
-	with codecs.open(fname, "r", encoding='utf-8') as fin:
-		for line in fin:
-			try:
-				doc = json.loads(line)
-				categories.append(doc['cat3'])
-
-				print(len(categories))
-			except:
-				pass
+	reviews = read_reviews()
+	for review in reviews:
+		categories.append(review['cat3'])
 
 	numbers = Counter(categories)
 	return numbers
