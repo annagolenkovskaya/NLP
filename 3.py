@@ -11,59 +11,24 @@
 сколько словосочетаний каждого типа 2а-2d
 """
 
-import codecs, json, pymorphy2, pandas as pd, re
+import pymorphy2, re, argparse
 from collections import Counter
-
-path = '/home/anna/Desktop/otzovik_medicine.json'
-path_cosmetics = '/home/anna/Desktop/cutted_reviews/all_reviews_texts_lemm_100000.txt'
-
-linis = '/home/anna/Desktop/collection (docs&words)_2016_all_labels/full word_rating_after_coding.xlsx'
-rusentilex_path = '/home/anna/Desktop/rusentilex.txt'
-
-data = pd.ExcelFile(linis)
-dfs = {sheet_name: data.parse(sheet_name)
-       for sheet_name in data.sheet_names}
-linis_tonalities = dfs['Лист1']
-linis_tonalities = linis_tonalities.values.tolist()
-for line in range(len(linis_tonalities)):
-	linis_tonalities[line] = linis_tonalities[line][0]
-
-rusentilex = []
-with open(rusentilex_path) as text:
-	for line in text:
-		rusentilex.append(line)
-rusentilex = rusentilex[18:]
-
-for line in range(len(rusentilex)):
-	if 'negative' in rusentilex[line]:
-		rusentilex[line] = rusentilex[line][:rusentilex[line].find(",")] + ' negative'
-	elif 'positive' in rusentilex[line]:
-		rusentilex[line] = rusentilex[line][:rusentilex[line].find(",")] + ' positive'
-	elif 'neutral' in rusentilex[line]:
-		rusentilex[line] = rusentilex[line][:rusentilex[line].find(",")] + ' neutral'
-
-for line in range(len(rusentilex)):
-	rusentilex[line] = re.sub("[^\w]", " ", rusentilex[line]).split()
+from utils import read_reviews, read_linis, read_rusentilex, read_rusentilex_pos
 
 
-def read_reviews(path):
-	reviews = []
-	with codecs.open(path, "r", encoding='utf-8') as fin:
-		for line in fin:
-			try:
-				doc = json.loads(line)
-				reviews.append([doc['description'], doc['lemm_text']])
+def dict_pos(dict, maturity=False):
+	parser = argparse.ArgumentParser()
+	parser.add_argument('path_to', type=str, help='path where the file with parts of speech dictionaty will be kept')
+	args = parser.parse_args()
+	path_to = args.path_to
+	# path_to = '/home/anna/Desktop/rusentilex_pos.txt'
+	dict = read_rusentilex()
+	# path_to = '/home/anna/Desktop/linis_pos.txt'
+	# dict = read_linis()
 
-			except:
-				pass
-
-	return reviews
-
-
-def dict_pos(dict, path_to, maturity=False):
 	morph = pymorphy2.MorphAnalyzer()
 	for line in range(len(dict)):
-		tag = morph.tag(dict[line])[0]
+		tag = morph.tag(str(dict[line]))[0]
 
 		if 'NOUN'in tag:
 			dict[line] += '_NOUN'
@@ -109,9 +74,14 @@ def dict_pos(dict, path_to, maturity=False):
 	return dict
 
 
-def bigrams(reviews, path_to, adj_noun=False, part_noun=False, neg_verb=False, noun_noun_gent=False,
+def bigrams(reviews, adj_noun=False, part_noun=False, neg_verb=False, noun_noun_gent=False,
             noun_noun_ablt=False):
+	parser = argparse.ArgumentParser()
+	parser.add_argument('path_to', type=str, help='path where to write the file with bigrams data')
+	args = parser.parse_args()
+	path_to = args.path_to
 
+	# path_to = '/home/anna/Desktop/frequencies_adj_noun.txt'
 	bigrams = []
 	all_res = []
 	number_of_all_bigrams = 0
@@ -122,10 +92,10 @@ def bigrams(reviews, path_to, adj_noun=False, part_noun=False, neg_verb=False, n
 	all_noun_noun_ablt_bigrams = 0
 
 	for review in reviews:
-		for word in range(1, len(review[1])):
+		for word in range(1, len(review)):
 			words = []
-			words.append(review[1][word - 1])
-			words.append(review[1][word])
+			words.append(review[word - 1])
+			words.append(review[word])
 			bigrams.append(words)
 
 		res = []
@@ -168,51 +138,42 @@ def bigrams(reviews, path_to, adj_noun=False, part_noun=False, neg_verb=False, n
 			number_of_bigrams += len(res)
 
 	all_res.append(res)
-	# number_of_all_bigrams += number_of_bigrams
-	# all_bigrams += len(bigrams)
-	# all_adj_noun_bigrams += len(adj_noun_bigrams)
-	# all_part_noun_bigrams += len(part_noun_bigrams)
-	# all_noun_noun_gent_bigrams += len(noun_noun_gent_bigrams)
-	# all_noun_noun_ablt_bigrams += len(noun_noun_ablt_bigrams)
-	# all_res.append('Всего извлеклось {} биграм'.format(number_of_all_bigrams))
-	# all_res.append('Осталось {} биграм'.format(all_bigrams - number_of_all_bigrams))
-	# all_res.append('Словосочетаний прилагательное + существительное = {}'.format(all_adj_noun_bigrams))
-	# all_res.append('Словосочетаний причастие + существительное = {}'.format(all_part_noun_bigrams))
-	# all_res.append('Словосочетаний существительное + существительное в родительном падеже = {}'.
-	#            format(all_noun_noun_gent_bigrams))
-	# all_res.append('Словосочетаний существительное + существительное в творительном падеже = {}'.
-	#            format(all_noun_noun_ablt_bigrams))
+	number_of_all_bigrams += number_of_bigrams
+	all_bigrams += len(bigrams)
+	all_adj_noun_bigrams += len(adj_noun_bigrams)
+	all_part_noun_bigrams += len(part_noun_bigrams)
+	all_noun_noun_gent_bigrams += len(noun_noun_gent_bigrams)
+	all_noun_noun_ablt_bigrams += len(noun_noun_ablt_bigrams)
+	all_res.append('Всего извлеклось {} биграм'.format(number_of_all_bigrams))
+	all_res.append('Осталось {} биграм'.format(all_bigrams - number_of_all_bigrams))
+	all_res.append('Словосочетаний прилагательное + существительное = {}'.format(all_adj_noun_bigrams))
+	all_res.append('Словосочетаний причастие + существительное = {}'.format(all_part_noun_bigrams))
+	all_res.append('Словосочетаний существительное + существительное в родительном падеже = {}'.
+	           format(all_noun_noun_gent_bigrams))
+	all_res.append('Словосочетаний существительное + существительное в творительном падеже = {}'.
+	           format(all_noun_noun_ablt_bigrams))
 
-	# with open(path_to, "w") as f:
-	# 	for r in all_res:
-	# 		f.write(str(r) + '\n')
+	with open(path_to, "w") as f:
+		for r in all_res:
+			f.write(str(r) + '\n')
 
-	return all_res
-
-linis_path_to = '/home/anna/Desktop/linis_pos.txt'
-rusentilex_path_to = '/home/anna/Desktop/rusentilex_pos.txt'
-
-path_to = '/home/anna/Desktop/frequencies_adj_noun.txt'
-
-# dict_pos(rusentilex, rusentilex_path_to)
-reviews = read_reviews(path_cosmetics)
-reviews = reviews[:100]
-for review in reviews:
-	review[0] = re.sub("[^\w]", " ", review[0]).split()
-	review[1] = re.sub("[^\w]", " ", review[1]).split()
-	review = dict_pos(review[1], linis_path_to, maturity=False)
-
-bigrams = bigrams(reviews, path_to, adj_noun=True, part_noun=False, noun_noun_gent=False, noun_noun_ablt=False,
-                  neg_verb=False)
+	return bigrams, all_res
 
 
-def rusentilex_tonality(file, bigrams, path_to, pos=False, neg=False):
+def rusentilex_tonality(file, bigrams, pos=False, neg=False):
+	parser = argparse.ArgumentParser()
+	parser.add_argument('path_to', type=str, help='path to file where to write the results')
+	args = parser.parse_args()
+	path_to = args.path_to
+	# path_to = '/home/anna/Desktop/positives.txt'
+	# path_to = '/home/anna/Desktop/negatives.txt'
+
 	positives = []
 	negatives = []
 
 	for bigram in bigrams:
 		for line in file:
-			if "'" + bigram[1] + "'" in line or "'" + bigram[0] + "'" in line:
+			if bigram[1] == line[0] or bigram[0] == line[0]:
 				if pos:
 					if 'positive' in line:
 						positives.append(bigram)
@@ -227,12 +188,11 @@ def rusentilex_tonality(file, bigrams, path_to, pos=False, neg=False):
 		for bigram in range(len(positives)):
 			positives[bigram] = positives[bigram][0] + ' ' + positives[bigram][1]
 		counter = Counter(positives)
-		print(type(counter), len(counter), counter)
 		counter_list = []
 		keys = list(counter.keys())
 		for i in range(len(keys)):
 			counter_list.append({keys[i]: counter[keys[i]]})
-		print(counter_list)
+
 		with open(path_to, "w") as f:
 			for r in counter_list:
 				f.write(str(r) + '\n')
@@ -249,12 +209,27 @@ def rusentilex_tonality(file, bigrams, path_to, pos=False, neg=False):
 			for r in counter_list:
 				f.write(str(r) + '\n')
 
-path = '/home/anna/Desktop/rusentilex_pos.txt'
-path_to_pos = '/home/anna/Desktop/positives.txt'
-path_to_neg = '/home/anna/Desktop/negatives.txt'
-file = []
-with open(path) as text:
-	for line in text:
-		file.append(line)
 
-rusentilex_tonality(file, bigrams[0], path_to_neg, pos=False, neg=True)
+if __name__ == "__main__":
+	# dict_pos()
+
+	reviews = read_reviews()
+	reviews = reviews[:100]
+	reviews_to_process = []
+	for review in range(len(reviews)):
+		reviews[review] = [reviews[review]['description'], reviews[review]['lemm_text']]
+
+		try:
+			reviews[review][0] = re.sub("[^\w]", " ", reviews[review][0]).split()
+			reviews[review][1] = re.sub("[^\w]", " ", reviews[review][1]).split()
+		except:
+			pass
+
+		reviews[review] = dict_pos(reviews[review][1], maturity=False)
+
+	bigrams = bigrams(reviews, adj_noun=False, part_noun=False, noun_noun_gent=False, noun_noun_ablt=False,
+	                  neg_verb=False)
+
+	file = read_rusentilex_pos()
+
+	rusentilex_tonality(file, bigrams[0], pos=False, neg=True)
