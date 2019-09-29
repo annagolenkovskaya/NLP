@@ -5,7 +5,7 @@
 b. То же самое, но теперь просуммировать частоты слов с одной окраской в отзывах каждого рейтинга. Записать результаты.
 """
 
-import codecs, json, pandas as pd, csv, re
+import codecs, json, pandas as pd, csv, re, argparse
 from collections import Counter
 from utils import read_reviews, read_rusentilex, read_linis
 
@@ -126,4 +126,5 @@ def tonality(rating, write_all_words=False, sum_pos_neg=False):
 			cw.writerows(r for r in tones)
 
 
-tonality(rating='1', write_all_words=True, sum_pos_neg=False)
+if __name__ == "__main__":
+	tonality(rating='1', write_all_words=True, sum_pos_neg=False)
