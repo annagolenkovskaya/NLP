@@ -27,7 +27,7 @@ def tonality(rating, write_all_words=False, sum_pos_neg=False):
 	parser = argparse.ArgumentParser()
 	parser.add_argument('csv_path', type=str, help='path to csv file')
 	args = parser.parse_args()
-	csv_path = args.indir
+	csv_path = args.csv_path
 
 	data_by_rating = []
 	for review in reviews:
