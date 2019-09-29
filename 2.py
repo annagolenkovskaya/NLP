@@ -13,7 +13,7 @@ from utils import read_reviews, read_rusentilex, read_linis
 def tonality(rating, write_all_words=False, sum_pos_neg=False):
 	reviews= read_reviews()
 
-	csv_path = '/home/anna/Desktop/tonalities_rating_one.csv'
+	# csv_path = '/home/anna/Desktop/tonalities_rating_one.csv'
 	rating_two_path = '/home/anna/Desktop/tonalities_rating_two.csv'
 	rating_three_path = '/home/anna/Desktop/tonalities_rating_three.csv'
 	rating_four_path = '/home/anna/Desktop/tonalities_rating_four.csv'
@@ -24,10 +24,10 @@ def tonality(rating, write_all_words=False, sum_pos_neg=False):
 	ratings_sum_three_path = '/home/anna/Desktop/tonalities_ratings_sum_three.csv'
 	ratings_sum_four_path = '/home/anna/Desktop/tonalities_ratings_sum_four.csv'
 	ratings_sum_five_path = '/home/anna/Desktop/tonalities_ratings_sum_five.csv'
-	# parser = argparse.ArgumentParser()
-	# parser.add_argument('csv_path', type=str, help='path to csv file')
-	# args = parser.parse_args()
-	# csv_path = args.indir
+	parser = argparse.ArgumentParser()
+	parser.add_argument('csv_path', type=str, help='path to csv file')
+	args = parser.parse_args()
+	csv_path = args.indir
 
 	data_by_rating = []
 	for review in reviews:
