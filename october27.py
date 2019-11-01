@@ -1,12 +1,19 @@
-import pandas as pd, numpy as np,re, csv
+import pandas as pd, numpy as np,re, nltk
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet
 
 psy_tar = '/home/anna/Downloads/Copy of PsyTAR_dataset.xlsx'
 data = pd.ExcelFile(psy_tar)
 dfs = {sheet_name: data.parse(sheet_name) for sheet_name in data.sheet_names}
-# print(dfs)
-# raise Exception
 review_id = list(dfs['Sample']['drug_id'])
 sentence_labeling_id = list(dfs['Sentence_Labeling']['drug_id'])
+
+
+def get_wordnet_pos(word):
+	tag = nltk.pos_tag([word])[0][1][0].upper()
+	tag_dict = {"J": wordnet.ADJ, "N": wordnet.NOUN, "V": wordnet.VERB, "R": wordnet.ADV}
+
+	return tag_dict.get(tag, wordnet.NOUN)
 
 
 def get_reviews():
@@ -28,6 +35,15 @@ def get_reviews():
 	for r in range(len(reviews)):
 		reviews[r] = re.sub("[^\w]", " ", reviews[r]).split()
 
+	lemmatizer = WordNetLemmatizer()
+
+	for r in range(len(reviews)):
+		# print('reviews[{}] before ='.format(r), reviews[r])
+		# print(reviews[r])
+		for word in range(len(reviews[r])):
+			# print('reviews[{}][{}] before ='.format(r, word),reviews[r][word])
+			reviews[r][word] = lemmatizer.lemmatize(reviews[r][word], get_wordnet_pos(reviews[r][word]))
+			# print('reviews[{}][{}] after ='.format(r, word),reviews[r][word])
 	return reviews
 
 
@@ -148,8 +164,9 @@ def d_pos_neg_number(dict, pos=False, neg=False):
 	reviews = get_reviews()
 	coincidences = []
 	for index, r in enumerate(reviews):
+		print(index)
 		count = 0
-		for word in r[:3]:
+		for word in r:
 			for w in dictionary:
 				if w == word:
 					count += 1
@@ -164,7 +181,7 @@ def words_number():
 	word_number = []
 	for r in reviews:
 		word_number.append(len(r))
-	print('reviews =', len(reviews))
+
 	return word_number
 
 
@@ -240,7 +257,8 @@ res_df = pd.DataFrame({'ReviewID':review_id, 'Rating': rating, 'ADR_number': x_n
                                'WD_sent_number', 'SSI_sent_number', 'DI_sent_number', 'EF_sent_number',
                                'INF_sent_number', 'words_number', 'sents_number'])
 
-print(res_df)
-
+# print(res_df)
+# for d in res_df['Bing_Liu_pos_number']:
+# 	print(d)
 csv_path = '/home/anna/Desktop/df.csv'
 res_df.to_csv(csv_path, sep=',', encoding='utf-8')
