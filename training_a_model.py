@@ -1,10 +1,10 @@
-from flair.data import Corpus
-from flair.datasets import WNUT_17
-from flair.embeddings import TokenEmbeddings, WordEmbeddings, StackedEmbeddings
+from flair.data import Corpus, Sentence
+from flair.datasets import WIKINER_RUSSIAN
+from flair.embeddings import TokenEmbeddings, WordEmbeddings, StackedEmbeddings, FlairEmbeddings
 from typing import List
 
 # 1. get the corpus
-corpus: Corpus = WNUT_17().downsample(0.1)
+corpus: Corpus = WIKINER_RUSSIAN().downsample(0.1)
 print(corpus)
 
 # 2. what tag do we want to predict?
@@ -15,7 +15,7 @@ tag_dictionary = corpus.make_tag_dictionary(tag_type=tag_type)
 print(tag_dictionary.idx2item)
 
 # 4. initialize embeddings
-embedding_types: List[TokenEmbeddings] = [WordEmbeddings('glove'),
+embedding_types: List[TokenEmbeddings] = [FlairEmbeddings('resources/taggers/language_model/best-lm.pt'),
                                           # comment in this line to use character embeddings
                                           # CharacterEmbeddings(), # comment in these lines to use flair embeddings
                                           # FlairEmbeddings('news-forward'), # FlairEmbeddings('news-backward'),
@@ -34,9 +34,10 @@ from flair.trainers import ModelTrainer
 trainer: ModelTrainer = ModelTrainer(tagger, corpus)
 
 # 7. start training
-trainer.train('/home/anna/Desktop/markup/example', learning_rate=0.1, mini_batch_size=32, max_epochs=150)
+trainer.train('/home/anna/Desktop/markup/collection5_learning/model', learning_rate=0.1, mini_batch_size=32,
+              max_epochs=150)
 
 # 8. plot weight traces (optional)
 from flair.visual.training_curves import Plotter
 plotter = Plotter()
-plotter.plot_weights('/home/anna/Desktop/markup/example/weights.txt')
+plotter.plot_weights('/home/anna/Desktop/markup/collection5_learning/model/weights.txt')
