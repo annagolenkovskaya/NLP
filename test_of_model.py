@@ -10,8 +10,3 @@ sentence = Sentence(u'Определяющим фактором повышени
                     u'государственно-частного партнерства')
 model.predict(sentence)
 print(sentence.to_tagged_string())
-
-sentence = Sentence(u'I want to христианский break free')
-# predict tags and print
-model.predict(sentence)
-print(sentence.to_tagged_string())
